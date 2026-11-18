@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -163,6 +164,7 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
     await _run(() async {
       final security = ref.read(securityRepositoryProvider);
       final bytes = await security.exportBackup();
+      if (!mounted) return;
       await _shareBytes(
         bytes: bytes,
         fileName: security.backupFileName(),
@@ -227,11 +229,28 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
     await _run(() async {
       final month = ref.read(selectedMonthProvider);
       final bytes = await ref.read(reportsRepositoryProvider).exportPdf(month);
+      if (!mounted) return;
       await _shareBytes(
         bytes: bytes,
         fileName: 'kipu_budget_$month.pdf',
         mimeType: 'application/pdf',
         text: 'Reporte mensual de KipuBudget.',
+      );
+    });
+  }
+
+  Future<void> _previewExcel() async {
+    await _run(() async {
+      final month = ref.read(selectedMonthProvider);
+      final bytes = await ref
+          .read(reportsRepositoryProvider)
+          .exportExcel(month);
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (context) => _ExcelPreviewSheet(bytes: bytes),
       );
     });
   }
@@ -242,6 +261,7 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
       final bytes = await ref
           .read(reportsRepositoryProvider)
           .exportExcel(month);
+      if (!mounted) return;
       await _shareBytes(
         bytes: bytes,
         fileName: 'kipu_budget_$month.xlsx',
@@ -258,6 +278,12 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
     required String mimeType,
     String? text,
   }) async {
+    final size = MediaQuery.sizeOf(context);
+    final origin = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: 1,
+      height: 1,
+    );
     final directory = await getTemporaryDirectory();
     final file = File(p.join(directory.path, fileName));
     await file.writeAsBytes(bytes, flush: true);
@@ -265,6 +291,7 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
       ShareParams(
         files: [XFile(file.path, mimeType: mimeType)],
         text: text,
+        sharePositionOrigin: origin,
       ),
     );
   }
@@ -366,6 +393,16 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.table_chart_outlined),
+                  title: const Text('Vista previa del Excel'),
+                  subtitle: const Text(
+                    'Revisa las hojas antes de compartirlas.',
+                  ),
+                  enabled: !_busy,
+                  onTap: _previewExcel,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.ios_share_rounded),
                   title: const Text('Compartir Excel'),
                   subtitle: const Text('Una hoja por sección del reporte.'),
                   enabled: !_busy,
@@ -1077,4 +1114,131 @@ Future<bool> _confirm(
     ),
   );
   return result ?? false;
+}
+
+class _ExcelPreviewSheet extends StatefulWidget {
+  const _ExcelPreviewSheet({required this.bytes});
+
+  final Uint8List bytes;
+
+  @override
+  State<_ExcelPreviewSheet> createState() => _ExcelPreviewSheetState();
+}
+
+class _ExcelPreviewSheetState extends State<_ExcelPreviewSheet> {
+  late final Excel _workbook = Excel.decodeBytes(widget.bytes);
+
+  @override
+  Widget build(BuildContext context) {
+    final sheets = _workbook.tables.keys.toList(growable: false);
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * 0.82,
+      child: sheets.isEmpty
+          ? const Center(child: Text('El reporte no contiene hojas.'))
+          : DefaultTabController(
+              length: sheets.length,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Vista previa del Excel',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
+                          tooltip: 'Cerrar',
+                        ),
+                      ],
+                    ),
+                  ),
+                  TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    tabs: [for (final name in sheets) Tab(text: name)],
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        for (final name in sheets)
+                          _ExcelSheetView(rows: _workbook.tables[name]!.rows),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+class _ExcelSheetView extends StatelessWidget {
+  const _ExcelSheetView({required this.rows});
+
+  final List<List<Data?>> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    if (rows.isEmpty) {
+      return const Center(child: Text('Hoja vacía.'));
+    }
+    var columns = 1;
+    for (final row in rows) {
+      if (row.length > columns) columns = row.length;
+    }
+    final scheme = Theme.of(context).colorScheme;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(
+        width: columns * 152.0,
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: rows.length,
+          itemBuilder: (context, index) {
+            final row = rows[index];
+            final isHeader = index == 0;
+            return Container(
+              color: isHeader
+                  ? scheme.surfaceContainerHighest.withValues(alpha: 0.6)
+                  : null,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  for (var column = 0; column < columns; column++)
+                    SizedBox(
+                      width: 152,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          column < row.length
+                              ? row[column]?.value?.toString() ?? ''
+                              : '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontWeight: isHeader
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                              ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 }

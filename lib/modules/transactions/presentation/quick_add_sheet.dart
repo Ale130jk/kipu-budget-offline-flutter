@@ -87,7 +87,9 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   }
 
   Future<void> _save() async {
-    final accounts = ref.read(accountsProvider).value ?? const [];
+    final accounts = (ref.read(accountsProvider).value ?? const [])
+        .where((account) => !account.archived)
+        .toList(growable: false);
     if (accounts.isEmpty) {
       setState(() => _error = 'Crea una cuenta en Herramientas.');
       return;
@@ -148,7 +150,9 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
     final theme = Theme.of(context);
     final accounts = ref.watch(accountsProvider);
     final budgets = ref.watch(currentMonthBudgetsProvider);
-    final accountRows = accounts.value ?? const [];
+    final accountRows = (accounts.value ?? const [])
+        .where((account) => !account.archived)
+        .toList(growable: false);
     final budgetRows = budgets.value ?? const [];
     final selectedAccount = _accountId ?? accountRows.firstOrNull?.id;
     final suggested = budgetRows

@@ -50,7 +50,8 @@ class _SecurityGateState extends ConsumerState<SecurityGate>
     try {
       enabled = await ref.read(securityRepositoryProvider).isBiometricEnabled();
     } on Object {
-      enabled = false;
+      // Fail closed: if the setting cannot be read, keep the gate locked.
+      enabled = true;
     }
     if (!mounted) return;
     setState(() {
@@ -87,6 +88,14 @@ class _SecurityGateState extends ConsumerState<SecurityGate>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(biometricEnabledProvider, (previous, next) {
+      final enabled = next.value;
+      if (enabled == null || !mounted) return;
+      setState(() {
+        _enabled = enabled;
+        if (!enabled) _unlocked = true;
+      });
+    });
     if (_checking) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
