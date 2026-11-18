@@ -129,6 +129,8 @@ final overageEnvelopeIdsProvider = Provider<Set<int>>((ref) {
 
 final movementsProvider = StreamProvider<List<MovementView>>((ref) {
   final filter = ref.watch(movementFilterProvider);
+  // shortcut: the "Hoy"/"Este mes" windows are captured when the provider is
+  // built; a date rollover while the app stays open needs a filter change.
   final now = DateTime.now();
   DateTime? from;
   DateTime? to;

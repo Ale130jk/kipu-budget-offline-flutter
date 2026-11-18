@@ -17,6 +17,10 @@ abstract interface class TransactionsRepository {
     required int amountCents,
     required String description,
     required DateTime date,
+
+    /// When [envelopeId] is null, [applyRules] lets the rule engine choose one.
+    /// Pass false when the user explicitly selected "sin sobre".
+    bool applyRules = true,
   });
 
   Future<MoneyMovement> recordIncome({

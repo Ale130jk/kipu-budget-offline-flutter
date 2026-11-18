@@ -31,7 +31,7 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
   bool _busy = false;
 
   Future<void> _run(Future<void> Function() action, {String? success}) async {
-    if (_busy) return;
+    if (_busy || !mounted) return;
     setState(() => _busy = true);
     try {
       await action();
@@ -358,7 +358,7 @@ class _ToolsPageState extends ConsumerState<ToolsPage> {
                   title: const Text('Bloqueo biométrico'),
                   subtitle: Text(
                     biometricSupported
-                        ? 'Pide huella o rostro al abrir la aplicación.'
+                        ? 'Pide huella, rostro o credencial del dispositivo.'
                         : 'Este dispositivo no tiene biometría disponible.',
                   ),
                   value: biometricEnabled,

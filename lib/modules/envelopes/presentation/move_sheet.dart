@@ -49,11 +49,30 @@ class _MoveSheetState extends ConsumerState<MoveSheet> {
     super.dispose();
   }
 
+  /// Resolves the visible "Hacia" selection, including the implicit default
+  /// used when the sheet opens from a "Cubrir" action.
+  int _targetFor(List<EnvelopeBudget> budgets, int fromId) {
+    final targets = budgets
+        .where((budget) => budget.envelopeId != fromId)
+        .toList(growable: false);
+    final selected = _toId;
+    if (selected != null &&
+        targets.any((budget) => budget.envelopeId == selected)) {
+      return selected;
+    }
+    final preferred = widget.toEnvelopeId;
+    if (preferred != null &&
+        targets.any((budget) => budget.envelopeId == preferred)) {
+      return preferred;
+    }
+    return targets.first.envelopeId;
+  }
+
   Future<void> _save(List<EnvelopeBudget> budgets) async {
     final fromId = _fromId ?? budgets.first.envelopeId;
-    final targetId = _toId;
+    final targetId = _targetFor(budgets, fromId);
     final cents = parseCents(_controller.text);
-    if (targetId == null || targetId == fromId) {
+    if (targetId == fromId) {
       setState(() => _error = 'Elige dos sobres distintos.');
       return;
     }
@@ -117,16 +136,7 @@ class _MoveSheetState extends ConsumerState<MoveSheet> {
     final targets = budgets
         .where((budget) => budget.envelopeId != fromId)
         .toList(growable: false);
-    final preferred = widget.toEnvelopeId;
-    var targetId = _toId;
-    if (targetId == null ||
-        !targets.any((budget) => budget.envelopeId == targetId)) {
-      targetId =
-          preferred != null &&
-              targets.any((budget) => budget.envelopeId == preferred)
-          ? preferred
-          : targets.first.envelopeId;
-    }
+    final targetId = _targetFor(budgets, fromId);
     return Padding(
       padding: EdgeInsets.fromLTRB(
         20,

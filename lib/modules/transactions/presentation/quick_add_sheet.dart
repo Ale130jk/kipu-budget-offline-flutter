@@ -74,6 +74,13 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   void _onDescriptionChanged(String value) {
     _suggestTimer?.cancel();
     if (_type != MovementType.expense) return;
+    if (value.trim().isEmpty) {
+      setState(() {
+        _suggestedEnvelopeId = null;
+        if (!_manualEnvelope) _envelopeId = null;
+      });
+      return;
+    }
     _suggestTimer = Timer(const Duration(milliseconds: 250), () async {
       final suggestion = await ref
           .read(transactionsRepositoryProvider)
@@ -127,6 +134,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
           amountCents: _cents,
           description: description,
           date: DateTime.now(),
+          applyRules: _envelopeId == null && !_manualEnvelope,
         );
       }
       ref.read(dataRevisionProvider.notifier).bump();
@@ -201,11 +209,13 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
             ],
             selected: {_type},
             onSelectionChanged: (selection) {
+              _suggestTimer?.cancel();
               setState(() {
                 _type = selection.first;
                 if (_type == MovementType.income) {
                   _envelopeId = null;
                   _suggestedEnvelopeId = null;
+                  _manualEnvelope = false;
                 }
               });
             },

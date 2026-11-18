@@ -45,11 +45,15 @@ class DriftTransactionsRepository implements TransactionsRepository {
     }
     final cleanQuery = query.trim();
     if (cleanQuery.isNotEmpty) {
-      final pattern = '%$cleanQuery%';
+      final escaped = cleanQuery
+          .replaceAll(r'\', r'\\')
+          .replaceAll('%', r'\%')
+          .replaceAll('_', r'\_');
+      final pattern = '%$escaped%';
       statement.where(
-        _db.movementRows.description.like(pattern) |
-            _db.accountRows.name.like(pattern) |
-            _db.envelopeRows.name.like(pattern),
+        _db.movementRows.description.like(pattern, escapeChar: r'\') |
+            _db.accountRows.name.like(pattern, escapeChar: r'\') |
+            _db.envelopeRows.name.like(pattern, escapeChar: r'\'),
       );
     }
 
@@ -100,6 +104,7 @@ class DriftTransactionsRepository implements TransactionsRepository {
     required int amountCents,
     required String description,
     required DateTime date,
+    bool applyRules = true,
   }) async {
     _requirePositive(amountCents);
     final cleanDescription = _cleanDescription(description);
@@ -107,7 +112,7 @@ class DriftTransactionsRepository implements TransactionsRepository {
       var targetEnvelopeId = envelopeId;
       if (targetEnvelopeId != null) {
         await _requireActiveEnvelope(targetEnvelopeId);
-      } else {
+      } else if (applyRules) {
         targetEnvelopeId = await _matchRule(cleanDescription);
       }
       final affected = await _db.customUpdate(

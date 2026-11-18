@@ -17,7 +17,7 @@ Todo vive en el dispositivo: sin cuentas, sin servidores, sin conexión obligato
 | **RF-05 · Reportes** | PDF mensual y Excel multi-hoja (resumen, sobres, movimientos), con vista previa y compartir. |
 | **RNF · Offline** | SQLite local, índices `(date, envelope_id)` y `(account_id)`, montos en centavos enteros. |
 
-Además: bloqueo biométrico, respaldo/restauración local, tema claro/oscuro Material 3 y gráficas de flujo de caja.
+Además: bloqueo biométrico con credencial del dispositivo como respaldo, respaldo/restauración local, tema claro/oscuro Material 3, gráficas de flujo de caja y vista previa del PDF y del Excel antes de compartirlos.
 
 ## Stack
 
@@ -167,4 +167,4 @@ CI (GitHub Actions) corre formato, análisis fatal y la suite completa en cada p
 ## Privacidad
 
 Sin telemetría, sin red, sin cuentas. El respaldo es un `.sqlite` que solo tú decides compartir.
-El bloqueo biométrico usa el almacén seguro del sistema (`local_auth`) y se activa tras una verificación correcta.
+El bloqueo biométrico usa el almacén seguro del sistema (`local_auth`) y se activa tras una verificación correcta. Acepta huella, rostro o la credencial del dispositivo, de modo que restablecer la biometría no te deja fuera de tus propios datos.

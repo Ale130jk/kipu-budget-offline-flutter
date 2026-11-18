@@ -246,6 +246,46 @@ void main() {
     expect(row.availableCents, -2200);
   });
 
+  test('explicit no-envelope expense bypasses rule matching', () async {
+    await env.transactions.saveRule(
+      pattern: 'super',
+      envelopeId: foodEnvelopeId,
+    );
+    final movement = await env.transactions.recordExpense(
+      accountId: accountId,
+      amountCents: 2200,
+      description: 'Supermercado del barrio',
+      date: _date,
+      applyRules: false,
+    );
+    expect(movement.envelopeId, isNull);
+    final budgets = await env.envelopes.watchMonth(_month).first;
+    final food = budgets.firstWhere(
+      (budget) => budget.envelopeId == foodEnvelopeId,
+    );
+    expect(food.spentCents, 0);
+  });
+
+  test('movement search treats LIKE wildcards literally', () async {
+    await env.transactions.recordExpense(
+      accountId: accountId,
+      amountCents: 500,
+      description: 'Pan 100% integral',
+      date: _date,
+      applyRules: false,
+    );
+    await env.transactions.recordExpense(
+      accountId: accountId,
+      amountCents: 500,
+      description: 'Pan integral',
+      date: _date,
+      applyRules: false,
+    );
+    final rows = await env.transactions.watchMovements(query: '%').first;
+    expect(rows, hasLength(1));
+    expect(rows.single.movement.description, 'Pan 100% integral');
+  });
+
   test('account transfer is atomic and does not touch the pool', () async {
     final savings = await env.accounts.createAccount(
       name: 'Ahorro',
