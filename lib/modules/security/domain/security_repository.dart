@@ -6,9 +6,11 @@ abstract interface class SecurityRepository {
 
   Future<bool> canUseBiometrics();
 
-  /// Enabling requires a successful biometric check.
+  /// Enabling requires a successful biometric or device-credential check.
   Future<void> setBiometricEnabled(bool enabled);
 
+  /// Biometrics first, with the device PIN/pattern as a fallback so a
+  /// biometrics reset can never lock the user out of local data.
   Future<bool> authenticate();
 
   Future<Uint8List> exportBackup();

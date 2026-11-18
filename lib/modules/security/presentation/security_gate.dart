@@ -38,10 +38,10 @@ class _SecurityGateState extends ConsumerState<SecurityGate>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
-      if (_enabled && !_unlocked) return;
-      if (_enabled) setState(() => _unlocked = false);
+      if (_enabled && _unlocked) setState(() => _unlocked = false);
     }
   }
 
@@ -156,7 +156,7 @@ class _LockScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Tus finanzas, solo para tus ojos.',
+                'Usa tu huella, rostro o credencial del dispositivo.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: scheme.onSurfaceVariant,

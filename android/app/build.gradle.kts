@@ -42,3 +42,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Required by local_auth's FragmentActivity + AppCompat launch theme.
+    implementation("androidx.appcompat:appcompat:1.7.1")
+}

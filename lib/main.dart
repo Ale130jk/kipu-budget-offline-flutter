@@ -22,7 +22,12 @@ Future<void> main() async {
   }
   runApp(
     ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(database)],
+      overrides: [
+        databaseProvider.overrideWith((ref) {
+          ref.onDispose(database.close);
+          return database;
+        }),
+      ],
       child: const KipuBudgetApp(),
     ),
   );

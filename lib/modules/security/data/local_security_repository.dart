@@ -90,7 +90,9 @@ class LocalSecurityRepository implements SecurityRepository {
     try {
       return await _authentication.authenticate(
         localizedReason: 'Desbloquea KipuBudget',
-        biometricOnly: true,
+        // Device credential fallback: resetting enrolled biometrics must not
+        // lock the user out of the only copy of their data.
+        biometricOnly: false,
         persistAcrossBackgrounding: true,
       );
     } on LocalAuthException {

@@ -15,7 +15,9 @@ class KipuBudgetApp extends StatelessWidget {
       theme: buildAppTheme(Brightness.light),
       darkTheme: buildAppTheme(Brightness.dark),
       themeMode: ThemeMode.system,
-      home: const SecurityGate(child: AppShell()),
+      builder: (context, child) =>
+          SecurityGate(child: child ?? const SizedBox.shrink()),
+      home: const AppShell(),
     );
   }
 }

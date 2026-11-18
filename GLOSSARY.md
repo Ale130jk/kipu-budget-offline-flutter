@@ -30,7 +30,7 @@ Los identificadores del código van en inglés; la interfaz, en español.
 | **Flujo de caja** | `MonthlyCashFlow` | Ingresos y gastos por mes para la gráfica de analítica. |
 | **Respaldo** | `exportBackup` | Copia consistente de la base SQLite (`VACUUM INTO`). |
 | **Restauración** | `restoreBackup` | Reemplazo total de las tablas desde un respaldo válido. Operación destructiva. |
-| **Bloqueo biométrico** | `biometric_enabled` | Ajuste que exige huella/rostro al abrir la app. |
+| **Bloqueo biométrico** | `biometric_enabled` | Ajuste que exige huella, rostro o credencial del dispositivo al abrir la app. Si no se puede leer el ajuste, la app queda bloqueada. |
 | **Semilla** | `seedStarterData` | Datos mínimos del primer arranque para que la app sea usable. |
 
 ## Convenciones
