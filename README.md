@@ -161,6 +161,8 @@ flutter test --coverage
 - Tests de reportes: bytes PDF (`%PDF`) y Excel decodificado con `Excel.decodeBytes`, incluido autofiltro.
 - Test de respaldo/restauración y rechazo de archivos ajenos.
 - Smoke test del shell con las cuatro pestañas.
+- Gate biométrico: bloquea la app, desbloquea tras verificar, reintenta y falla cerrado si el ajuste no se puede leer.
+- Build Android de depuración compilado con Flutter 3.41.9 (`flutter build apk --debug`).
 
 CI (GitHub Actions) corre formato, análisis fatal y la suite completa en cada push a `main`/`develop` y en pull requests.
 
