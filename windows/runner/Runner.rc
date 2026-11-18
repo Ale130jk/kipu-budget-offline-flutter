@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "dev.portfolio" "\0"
-            VALUE "FileDescription", "kipu_budget" "\0"
+            VALUE "FileDescription", "KipuBudget" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "kipu_budget" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 dev.portfolio. All rights reserved." "\0"
             VALUE "OriginalFilename", "kipu_budget.exe" "\0"
-            VALUE "ProductName", "kipu_budget" "\0"
+            VALUE "ProductName", "KipuBudget" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

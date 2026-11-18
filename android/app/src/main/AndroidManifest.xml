@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" android:maxSdkVersion="28"/>
     <application
-        android:label="kipu_budget"
+        android:label="KipuBudget"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
