@@ -150,7 +150,7 @@ Requisitos: Flutter 3.41+, toolchain de la plataforma elegida. La base se crea s
 ## Calidad
 
 ```bash
-dart format --output=none --set-exit-if-changed .
+dart format --output=none --set-exit-if-changed lib test
 flutter analyze --fatal-infos
 flutter test --coverage
 ```
